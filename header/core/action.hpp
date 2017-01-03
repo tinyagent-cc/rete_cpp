@@ -14,8 +14,7 @@ struct action
    std::tuple<Types...> args;
 
  
-    void execute(Types...args){}
-       
+    void execute(Types...args){}   
     static const std::size_t value = sizeof...(Types);
 };
 

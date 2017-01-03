@@ -4,26 +4,22 @@
 #include <boost/any.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
-
+/*
+*Retes are directed acyclic graphs that represent higher-level rule sets
+*/
 namespace rete_cpp
 {
 
-    class AlphaNode;
-    class BetaNode;
+class AlphaNode;
+class BetaNode;
 
-    template <class Node>
-    class NodeGraphManager
-    {
+template <class Node>
+class NodeGraphManager
+{
 
-
-
-
-      private:
-      typedef boost::adjacency_list<boost:vecS, boost::vecS, boost::bidirectionalS> nodes_graph;
-      typedef nodes_graph::vertex_iterator vertex_iterator;
-      typedef nodes_graph::edge_iterator edge_iterator;
-
-    }
-
-
+private:
+  typedef boost::adjacency_list<boost : vecS, boost::vecS, boost::bidirectionalS> nodes_graph;
+  typedef nodes_graph::vertex_iterator vertex_iterator;
+  typedef nodes_graph::edge_iterator edge_iterator;
+}
 }
