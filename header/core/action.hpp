@@ -1,5 +1,5 @@
 
-#include <tuple>
+#include <boost/tuple/tuple.hpp>
 #include <functional>
 
 namespace rete_cpp
@@ -10,8 +10,8 @@ template<typename... Types>
 struct action
 {
 
-   std::function<void (Types...)> f;
-   std::tuple<Types...> args;
+std::function<void (Types...)> f;
+std::tuple<Types...> args;
 
  
     void execute(Types...args){}   
