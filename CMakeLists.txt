@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (rete_cpp)
 
+find_package(BOOST  REQUIRED)
 
 
 include_directories ("${PROJECT_SOURCE_DIR}/header")
