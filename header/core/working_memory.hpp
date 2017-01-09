@@ -1,4 +1,6 @@
 #include <string>
+#include <memory>
+#include <vector>
 
 namespace rete_cpp
 {
@@ -44,6 +46,7 @@ public:
   //halt
   void halt() {}
   private:
+  std::vector<
     
 };
 }
