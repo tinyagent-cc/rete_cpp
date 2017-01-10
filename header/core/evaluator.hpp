@@ -92,4 +92,63 @@ struct valueOf
     }
 };
  
+/////
+
+template< typename T , typename Enabled=void >
+struct valueOf{};
+
+template< typename T >
+struct valueOf<T, typename std::enable_if<std::is_fundamental<T>::value >::type >
+{
+    T operator()(T t)
+    {
+        return t;
+    }
+};
+
+template< typename T>
+struct valueOf<T, typename
+std::enable_if<
+    std::is_member_object_pointer<T>::value
+>::type >
+{
+  //  auto std::mem_fn
+      typename std::result_of<T>::type operator()(T t)
+    {
+      return t;
+    }
+};
+/*
+template< typename T, typename 
+std::enable_if<
+    std::is_member_function_pointer<T>::value
+    ||  std::is_function<T>::value
+>::type ,  typename ...Args>
+struct valueOf
+{
+  //  auto std::mem_fn
+   // decltype(std::result_of<>)
+    auto operator()(T t, Args...args)
+    {
+        return invoke(t,args);
+    }
+};
+*/
+struct X{
+    int a;
+    };
+int main()
+{
+    X *x=new X;
+    x->a=12;
+    std::cout<<valueOf<int>()(12)<<std::endl;
+  std::cout<<valueOf<int(X::*)>(&x->a)<<std::endl;
+  delete x;
+return 0;
+
+}
+
+
+
+
 }
