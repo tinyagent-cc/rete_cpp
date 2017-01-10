@@ -5,6 +5,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 
+
 include_directories ("${PROJECT_SOURCE_DIR}/header")
 
 add_library(rete_cpp ${SRC})
