@@ -1,4 +1,5 @@
 #include <functional>
+#include <type_traits>
 #include <boost/fusion/functional/invocation/invoke.hpp>
 
 namespace rete_cpp
@@ -64,17 +65,31 @@ struct valueOf
 };
 template< typename T>
 std::enable_if<
-    std::is_member_pointer<T>::value
+    std::is_member_object_pointer<T>::value
 >::type
 struct valueOf
 {
-    auto std::mem_fn
-    decltype(std::result_of<>)
+  //  auto std::mem_fn
+   // decltype(std::result_of<>)
     auto operator()(T t)
     {
         
         return t;
     }
 };
-
+template< typename T, typename ...Args>
+std::enable_if<
+    std::is_member_function_pointer<T>::value
+    ||  std::is_function<T>::value
+>::type
+struct valueOf
+{
+  //  auto std::mem_fn
+   // decltype(std::result_of<>)
+    auto operator()(T t, Args...args)
+    {
+        return invoke(t,args);
+    }
+};
+ 
 }
