@@ -5,25 +5,40 @@
 namespace rete_cpp
 {
 
-template <typename T>
+template <typename T, typename U, typename OP>
 struct evaluator
 {
-    bool evaluate(const T& left, const T& right)
+    bool evaluate(const T& rhs, const T& lfs)
     {
         return   eval(left,right);
     }
 
-
-
-
 };
 
 
-template<typename T,  typename Enable=void >
+template<typename ...EXPR,  bool enabled>
+struct eval;
+
+template<typename ...EXPR, false>
+struct eval{};
+
+template<typename ...EXPR, std::e>
+struct eval{};
+
+
+
+template<typename ...EXPR, bool enabled = false>
 struct eval
 {
    
 };
+
+template<typename T,  typename ...Types, typename ...OPs>
+struct eval< T, 
+{
+   
+};
+
 
 
 template<typename T,  typename std::enable_if<
