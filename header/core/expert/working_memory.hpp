@@ -46,7 +46,7 @@ public:
   //halt
   void halt() {}
   private:
-  std::vector<
+  std::vector<>
     
 };
 }

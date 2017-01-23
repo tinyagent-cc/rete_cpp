@@ -33,7 +33,7 @@ private:
 
 
   // Using lambda to compare elements.
-  auto comparator = [](rule& left, rule& right { return left.salience < right.salience; };
+  auto comparator = [](rule& left, rule& right) { return left.salience < right.salience; };
   std::priority_queue<rule, std::vector<rule>, decltype(comparator)> activatedRulesQueue(comparator);
 };
 }

@@ -19,8 +19,8 @@ struct evaluator
 template<typename ...EXPR,  bool enabled>
 struct eval;
 
-template<typename ...EXPR, false>
-struct eval{};
+template<typename ...EXPR>
+struct eval<EXPR,false>{};
 
 template<typename ...EXPR, std::e>
 struct eval{};
