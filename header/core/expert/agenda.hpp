@@ -1,10 +1,8 @@
-
+#include <boost/variant.hpp>
 #include <string>
 #include <queue>
 namespace rete_cpp
 {
-
-  class rule;
 
 // Inference engine prepares a priotorized list of rules called agenda.
 // The rules in the list must be satisfied by the facts in the working memory.
@@ -21,19 +19,44 @@ namespace rete_cpp
 // Agenda conflict occurs when different activations have the same priority.
 // Agenda conflict is tackled by strategies such as first come first execute, assigning default priority, and so on.
 
-class agenda
+template <class RuleType, class AgendaType>
+struct agenda_impl
 {
+  typedef boost::variant<RuleType, AgendaType> agenda_inner_type;
+  typedef std::priority_queue<agenda_inner_type> agenda_priority_queue;
 
-public:
-  agenda(const std::string _name, const std::int32_t _salience) : name(_name), salience(_salience) {}
-  agenda(const std::string _name) : name(_name), salience(0) {}
-  void add(rule...rules){for (auto &r:rules) activatedRulesQueue.push_front(r);}
-private:
+  explicit agenda(const std::string _name, const int _salience) : name(_name), salience(_salience) {}
+  explicit agenda(const std::string _name) : name(_name), salience(0) {}
+  agenda() = delete;
+
+namesapce details{
+  template <class T>
+  void add(T... rules)
+  {
+    for (auto &r : T)
+      activatedRulesQueue.push_front(r);
+  }
+  template <typename T, unsigned int index>
+  T get() { return boost::get<T>(activatedRulesQueue[index]); }
+  
+}
+  template<unsigned int index>
+  using get_agenda=details::get<AgendaType, index>;
+ 
+  template<unsigned int index>
+  using get_rule=details::get<RuleType, index>;
+  
+
+  using add_rule=details::add<RuleType>;
+  using add_agenda=details::add<AgendaType>;
+  
   std::string name;
-
+  int salience;
 
   // Using lambda to compare elements.
-  auto comparator = [](rule& left, rule& right) { return left.salience < right.salience; };
-  std::priority_queue<rule, std::vector<rule>, decltype(comparator)> activatedRulesQueue(comparator);
+  template <class T>
+  auto comparator = [](T &left, T &right) { return left.salience < right.salience; };
+
+  agenda_priority_queue<rule, std::vector<boost::variant<RuleType, AgendaType>>, decltype(comparator)> activatedRulesQueue(comparator);
 };
 }

@@ -6,7 +6,7 @@ namespace rete_cpp
 
 class rule;
 
-template <class RulesCompiler>
+template <class FactType>
 struct knowledge_base : private RulesCompiler
 {
 

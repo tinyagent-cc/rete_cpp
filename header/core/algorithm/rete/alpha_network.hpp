@@ -6,8 +6,19 @@
 namespace rete_cpp
 {
 
-template <class T>
-class alpha_node
+template<typename...>
+struct condition;
+template<>
+struct condition<> : std::true_type{};
+
+template<bool T>
+struct condition :  std::integral_constant<bool, T>
+{
+}; 
+
+
+template <typename Condtion>
+struct alpha_node
 {
 
   private:
@@ -20,7 +31,6 @@ class alpha_node
 };
 
 
-class working_memeory_element;
 
 struct alpha_network
 {

@@ -17,6 +17,8 @@ template <class Node>
 class NodeGraphManager
 {
 
+  
+
 private:
   typedef boost::adjacency_list<boost : vecS, boost::vecS, boost::bidirectionalS> nodes_graph;
   typedef nodes_graph::vertex_iterator vertex_iterator;

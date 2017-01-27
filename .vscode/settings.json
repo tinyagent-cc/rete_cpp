@@ -1,3 +1,38 @@
 // Placez vos paramètres dans ce fichier pour remplacer les paramètres par défaut et les paramètres utilisateur.
 {
+    "files.associations": {
+        "list": "cpp",
+        "*h*h*hpp*hpp*hdeque": "cpp",
+        "deque": "cpp",
+        "*h*h*hpp*hpp*hpp*hpp*hppslist": "cpp",
+        "slist": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "array": "cpp",
+        "*h*h*harray": "cpp",
+        "*hutility": "cpp",
+        "utility": "cpp",
+        "*histream": "cpp",
+        "istream": "cpp",
+        "*hexception": "cpp",
+        "*h*h*h*h*hnew": "cpp",
+        "typeinfo": "cpp",
+        "*h*h*hcctype": "cpp",
+        "cctype": "cpp",
+        "cstdint": "cpp",
+        "cwchar": "cpp",
+        "initializer_list": "cpp",
+        "*hclocale": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cwctype": "cpp",
+        "*hpp*hppcstddef": "cpp",
+        "*hpp*hpp*hpp*hppcmath": "cpp",
+        "cstring": "cpp",
+        "*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hppcstdarg": "cpp",
+        "cstdarg": "cpp",
+        "*hppctime": "cpp",
+        "ctime": "cpp",
+        "*hpp*hpp*hppcsignal": "cpp"
+    }
 }

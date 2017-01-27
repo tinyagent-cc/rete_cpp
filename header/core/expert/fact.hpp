@@ -3,6 +3,8 @@ namespace rete_cpp
 {
 
 class condition;
+
+
 template <
 typename fact_type, 
 typename contition_type,

@@ -9,7 +9,7 @@ class fact;
 class condition;
 class action;
 
-class rule
+struct rule
 {
     enum rule_state
     {
@@ -19,8 +19,6 @@ class rule
         TERMINATED
 
     };
-
-  public:
     rule(std::string const &&_name, int  _salience, rule_state &&_rule_state) : name(name), salience(_salience), state(_rule_state)
     {
     }
@@ -30,6 +28,8 @@ class rule
     rule(std::string const &_name) : name(name), salience(0), state(rule_state::UNMATCHED)
     {
     }
+    rule()=default;
+
     void fire()
     {
         if (state == ACTIVATED)
