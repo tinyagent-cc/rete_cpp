@@ -1,9 +1,0 @@
-[requires]
-Boost/1.60.0@lasote/testing
-
-[options]
-boost:shared=true # false
-# Take a look for all available options in conanfile.py
-
-[generators]
-cmake

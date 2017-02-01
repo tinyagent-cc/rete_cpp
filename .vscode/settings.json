@@ -33,6 +33,9 @@
         "cstdarg": "cpp",
         "*hppctime": "cpp",
         "ctime": "cpp",
-        "*hpp*hpp*hppcsignal": "cpp"
+        "*hpp*hpp*hppcsignal": "cpp",
+        "memory": "cpp",
+        "map": "cpp",
+        "vector": "cpp"
     }
 }
