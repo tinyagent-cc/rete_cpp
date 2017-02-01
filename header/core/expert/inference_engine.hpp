@@ -1,6 +1,6 @@
 #include<vector>
 
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 template<typename fact_type>

@@ -1,16 +1,15 @@
 #include <memory>
 #include <array>
 #include <string>
-namespace rete_cpp
+namespace sbre_cpp
 {
 
-class rule;
 
-template <class FactType>
+template <class rule_type>
 struct knowledge_base : private RulesCompiler
 {
 
-    typedef std::array<std::unique_ptr<rule>> rules_container;
+    typedef std::array<std::unique_ptr<rule_type>> rules_container;
 
     explicit knowledge_base(std::string &_name) : name(_name) {}
     knowledge_base() = delete;

@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 class agenda;

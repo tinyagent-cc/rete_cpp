@@ -1,7 +1,7 @@
 #include <boost/variant.hpp>
 #include <string>
 #include <queue>
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 // Inference engine prepares a priotorized list of rules called agenda.

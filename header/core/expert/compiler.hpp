@@ -1,7 +1,7 @@
 #include<array>
 #include<memory>
 
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 // need to be specialized

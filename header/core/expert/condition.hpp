@@ -1,4 +1,4 @@
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 

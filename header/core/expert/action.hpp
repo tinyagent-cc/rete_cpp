@@ -6,7 +6,7 @@
 #include <functional>
 #include <boost/fusion/functional/invocation/invoke.hpp>
 
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 

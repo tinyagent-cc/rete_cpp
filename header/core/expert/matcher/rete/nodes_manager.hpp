@@ -7,7 +7,7 @@
 /*
 *Retes are directed acyclic graphs that represent higher-level rule sets
 */
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 class AlphaNode;

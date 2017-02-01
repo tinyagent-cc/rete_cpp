@@ -2,7 +2,7 @@
 #include <type_traits>
 #include <boost/fusion/functional/invocation/invoke.hpp>
 
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 template <typename T, typename U, typename OP>

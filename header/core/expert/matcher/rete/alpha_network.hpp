@@ -3,7 +3,7 @@
 #include <memory>
 #include <boost/any.hpp>
 #include <boost/graph/adjacency_list.hpp>
-namespace rete_cpp
+namespace sbre_cpp
 {
 
 template<typename...>
@@ -36,12 +36,18 @@ struct alpha_network
 {
 
    bool select(working_memeory_element& const wme, fact& const fact){
-       return std::is_same<wme.fact_ptr.get()::type, fact::type >();
+       return std::is_same<wme.fact_ptr.get()::type, fact::type >()::value;
    }
 
    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> nodes_graph; 
 
 };
+
+
+// Using lambda to compare elements.
+  template <class wme>
+  auto comparator = [](T &left, T &right) bool->{ return left.salience < right.salience; };
+
 
 /* template<typename... facts>
  struct Token
