@@ -6,53 +6,62 @@
 #include <vector>
 
 namespace boost
-  {
-    enum vertex_compile_cost_t { vertex_compile_cost = 111; };
-    BOOST_INSTALL_PROPERTY(vertex, compile_cost);
+{
+enum vertex_type_t
+{
+  vertex_type = 111;
+};
+BOOST_INSTALL_PROPERTY(vertex, type);
+}
 
-  }
+namespace sbre_cpp
+{
 
-namespace sbre_cpp {
-
-class rete {
-
-  template <class Graph, class EdgePredicate, class VertexPredicate>
-  using lfs_rules =
-      boost::filtered_graph<Graph, EdgePredicate, VertexPredicate>;
+class rete
+{
 
   typedef boost::adjacency_list<
-  boost::listS, 
-  boost::vecS, 
-  boost::directedS, 
-  boost::property<boost::vertex_name_t, std::string , boost::property<boost::vertex_compile_cost_t, float>  >,
-    //edge
-  boost::property<boost::edge_weight2_t, float>
-  > graph_t;
-     
-  typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t; 
-  typedef boost::graph_traits<graph_t>::edge_descriptor edge_t; 
+      boost::listS,
+      boost::vecS,
+      boost::directedS,
+      //boost::property<boost::vertex_name_t, std::string, boost::property<boost::vertex_type_t, class>>
+      //,
+      //edge
+      //boost::property<boost::edge_weight_t, float>,
+      >
+      graph_t;
 
-  
+  typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
+  typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
 
-  graph_t Graph;
+  template <class EdgePredicate, class VertexPredicate>
+  using graph_view_t = boost::filtered_graph<graph_t, EdgePredicate, VertexPredicate>;
 
-  void build() {
-
-
-
+  template <graph_t Graph, class Rule>
+  void build(Rule[] rules)
+  {
+    vertex_t root = boost::add_vertex(Graph);
 
   }
+  template <graph_t Graph, class Rule>
+  void add_rule(Rule r)
+  {
+    for(auto &cond : r.lhs )
+     {
+        cond.get()
+     }
+  };
 };
 
-class Node {};
+class Node
+{
+};
 
-class RootNode : Node {};
+class RootNode : Node
+{
+};
 
-class TypeNode : Node {};
-
-
-
-
-
-
+class TypeNode : Node
+{
+};
 }

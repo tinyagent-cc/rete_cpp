@@ -36,6 +36,7 @@
         "*hpp*hpp*hppcsignal": "cpp",
         "memory": "cpp",
         "map": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*hpp*hthread": "cpp"
     }
 }
