@@ -3,7 +3,23 @@ project (sbre_cpp)
 
 add_compile_options(-std=c++11)
 
-find_package( Boost COMPONENTS  program_options log graph serialization  REQUIRED )
+
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+
+
+if(WIN32)
+    set(BOOST_ROOT "C:/dev/boost_1_63_0" )
+    #set(Boost_INCLUDE_DIR C:/dev/boost_1_63_0/boost )
+    set(BOOST_LIBRARYDIR "C:/dev/boost_1_63_0/stage/lib" )
+endif(WIN32)
+#  proto, mpl, fusion for expressions 
+find_package( Boost COMPONENTS program_options proto mpl fusion log graph serialization  REQUIRED )
+
+# Find the QtWidgets library
+#find_package(Qt5Widgets)
 
 #include_directories(${Boost_INCLUDE_DIR} ${MPI_INCLUDE_PATH} include)
 include_directories(${Boost_INCLUDE_DIR} header)
