@@ -37,6 +37,7 @@
         "memory": "cpp",
         "map": "cpp",
         "vector": "cpp",
-        "*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*hpp*hthread": "cpp"
+        "*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*h*hpp*hthread": "cpp",
+        "FUNCTIONAL": "cpp"
     }
 }
