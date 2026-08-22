@@ -1,5 +1,11 @@
 # RETE Expert System in Modern C++
 
+Part of [tinyagent](https://github.com/tinyagent-cc): rete_cpp is the
+stack's reflex layer. [tiny_agent](https://github.com/tinyagent-cc/tiny_agent)'s
+`middleware/reflex.hpp` uses it to answer easy cases in microseconds without
+a model call and to veto bad tool calls deterministically. rete_cpp itself
+has no dependency on tiny_agent and works standalone.
+
 This project provides a header-only RETE-based expert system engine implemented
 in modern C++17, with:
 
