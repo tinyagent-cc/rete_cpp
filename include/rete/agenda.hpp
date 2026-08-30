@@ -118,6 +118,17 @@ public:
 
     void clear_refraction() { refraction_set_.clear(); }
 
+    // Refraction is keyed on a raw Production*, so an entry left behind by a
+    // removed rule can be inherited by whatever the allocator puts at that
+    // address next. On a hot reload that means the replacement rule stays
+    // silent for every match the old one had already fired on.
+    void clear_refraction_for(Production* prod) {
+        for (auto it = refraction_set_.begin(); it != refraction_set_.end(); ) {
+            if (it->first == prod) it = refraction_set_.erase(it);
+            else ++it;
+        }
+    }
+
     const std::vector<Activation>& activations() const { return activations_; }
 
 private:

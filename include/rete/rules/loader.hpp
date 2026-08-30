@@ -352,12 +352,17 @@ private:
             if (!accepted[i]) continue;
             const RuleDefinition& def = defs[i];
 
+            // Removal comes first, and applies to a disabled rule too.
+            // Otherwise an operator who sets enabled: false and reloads gets
+            // a successful result and a robot that still does the thing,
+            // because the previous version of the rule is untouched.
+            if (opts.replace_existing && engine_.has_rule(def.name))
+                engine_.remove_rule(def.name);
+
             if (!def.enabled) {
                 disabled_.push_back(def.name);
                 continue;
             }
-            if (opts.replace_existing && engine_.has_rule(def.name))
-                engine_.remove_rule(def.name);
 
             engine_.add_production(compile_rule(def, registry_));
             result.rule_names.push_back(def.name);

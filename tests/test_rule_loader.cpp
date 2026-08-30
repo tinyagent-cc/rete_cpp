@@ -875,25 +875,15 @@ TEST_CASE("replace_existing swaps a rule in place", "[rules][replace]") {
 }
 
 // ---------------------------------------------------------------------------
-// KNOWN BUG, not fixed here. Tagged [!mayfail] because it fails
-// intermittently and the intermittency is the point.
-//
-// Agenda's refraction set is keyed on a raw Production*, and
-// ReteEngine::remove_rule() clears the agenda's pending activations for a
-// removed production but not its refraction entries. replace_existing is
-// remove-then-add, so the replacement Production is very often allocated at the
-// address the old one just freed and inherits its refraction: for every match
-// the old rule already fired on, the new rule stays silent.
-//
-// Whether it happens depends on what the allocator hands back, which is the
-// worst possible failure mode. It passes on a laptop and goes quiet on a robot.
-// A hot-reloaded behaviour that never runs is not a cosmetic defect.
-//
-// engine.clear_refraction() after a replace is the workaround; the test below
-// this one pins that down and does pass reliably.
+// Regression. Refraction is keyed on a raw Production*, and remove_rule used
+// to leave those entries behind. replace_existing is remove-then-add, so the
+// replacement was often allocated at the address the old one just freed and
+// inherited its refraction: for every match the old rule had already fired on,
+// the new rule stayed silent. It passed on a laptop and went quiet on a robot
+// doing a hot reload. remove_rule now calls Agenda::clear_refraction_for().
 // ---------------------------------------------------------------------------
 TEST_CASE("A rule can be replaced after it has already fired",
-          "[rules][replace][!mayfail]") {
+          "[rules][replace]") {
     ReteEngine     engine;
     ActionRegistry registry;
     int old_fires = 0, new_fires = 0;
@@ -952,17 +942,13 @@ TEST_CASE("clear_refraction lets a replaced rule see the matches it inherited",
     REQUIRE(new_fires >= 1);
 }
 
-TEST_CASE("enabled false does not switch off a rule the engine already runs",
-          "[rules][replace][enabled][known-sharp-edge]") {
-    // KNOWN SHARP EDGE, pinned here rather than fixed: this is the loader's
-    // behaviour today, not an endorsement of it.
-    //
-    // RuleLoader::install() takes the `!enabled` branch before the
-    // replace_existing removal, so reloading a document with `enabled: false`
-    // reports success, lists the rule as disabled, and leaves the previously
-    // loaded version running. An operator who edits a file to switch a
-    // behaviour off and reloads it gets ok() == true and a robot that still
-    // does the thing. Call remove_rule() to actually stop it.
+TEST_CASE("enabled false switches off a rule the engine already runs",
+          "[rules][replace][enabled]") {
+    // Regression. install() used to take the `!enabled` branch before the
+    // replace_existing removal, so an operator who edited a file to switch a
+    // behaviour off and reloaded it got ok() == true and a robot that still
+    // did the thing. Removal now happens first and applies to a disabled rule
+    // too, so a reload with replace_existing genuinely stops the behaviour.
     ReteEngine     engine;
     ActionRegistry registry;
     int fires = 0;
@@ -987,7 +973,38 @@ TEST_CASE("enabled false does not switch off a rule the engine already runs",
     REQUIRE(result.loaded == 0u);
     REQUIRE(loader.disabled_rules().size() == 1u);
 
-    // The part that surprises: the rule is still in the engine and still fires.
+    // The rule is gone from the engine and the behaviour stops.
+    REQUIRE_FALSE(engine.has_rule("behaviour"));
+    REQUIRE(engine.rule_count() == 0u);
+    engine.assert_fact(str("robot"), str("state"), str("idle"));
+    engine.run();
+    REQUIRE(fires == 0);
+}
+
+TEST_CASE("enabled false without replace_existing leaves the running rule alone",
+          "[rules][replace][enabled]") {
+    // The other half of the contract. Without replace_existing the loader is
+    // not being asked to touch what is already there, so a disabled duplicate
+    // is a DuplicateRuleName error rather than a silent removal.
+    ReteEngine     engine;
+    ActionRegistry registry;
+    int fires = 0;
+    registry.register_action("go", [&](ReteEngine&, const Bindings&, const ActionParams&) { ++fires; });
+
+    RuleLoader loader(engine, registry);
+    REQUIRE(loader.load_definitions({
+        make_rule("behaviour", 0, {cond("robot", "state", Operator::Equals, str("idle"))},
+                  {action("go")})}).ok());
+
+    RuleDefinition off = make_rule("behaviour", 0,
+                                   {cond("robot", "state", Operator::Equals, str("idle"))},
+                                   {action("go")});
+    off.enabled = false;
+    LoadResult result = loader.load_definitions({off});
+
+    REQUIRE_FALSE(result.ok());
+    REQUIRE(result.errors.size() == 1u);
+    REQUIRE(result.errors[0].code == ErrorCode::DuplicateRuleName);
     REQUIRE(engine.has_rule("behaviour"));
     engine.assert_fact(str("robot"), str("state"), str("idle"));
     engine.run();

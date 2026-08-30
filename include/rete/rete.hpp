@@ -10,7 +10,10 @@
 #include "wme.hpp"
 
 #include <algorithm>
-#include <iostream>
+#include "config.hpp"
+#if !RETE_NO_IOSTREAM
+#include <ostream>
+#endif
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -63,6 +66,7 @@ public:
                 pnode->tokens.clear();
                 pnode->production = nullptr;
             }
+            agenda_.clear_refraction_for(it->get());
             production_nodes_.erase(it->get());
             productions_.erase(it);
         }
@@ -187,6 +191,7 @@ public:
 
     // ---- Optional Boost BGL DOT export -----------------------------------
 #ifdef RETE_HAS_BOOST
+#if !RETE_NO_IOSTREAM
     void export_to_dot(std::ostream& os) const {
         using Graph = boost::adjacency_list<
             boost::vecS, boost::vecS, boost::directedS,
@@ -207,7 +212,8 @@ public:
         boost::write_graphviz(os, g,
             boost::make_label_writer(boost::get(boost::vertex_name, g)));
     }
-#endif
+#endif // !RETE_NO_IOSTREAM
+#endif // RETE_HAS_BOOST
 
 private:
     void rebuild_agenda_from_current_matches() {

@@ -282,7 +282,7 @@ Entry points:
 | `load_from_files(paths, opts)` | In order, sharing one name space. The second file's copy of a rule the first file loaded is a duplicate, not a shadow |
 | `load_node(root, opts)` | For a `ConfigNode` you built or parsed yourself |
 | `load_definitions(defs, opts)` | Skips parsing entirely. `RuleDefinition` structs in, productions out |
-| `disabled_rules()` | Rules the last load read and validated but left out because `enabled: false`. Not errors, not loaded, and `LoadResult` has nowhere to put that third case |
+| `disabled_rules()` | Rules the last load read and validated but left out because `enabled: false`. Not errors, not loaded, and `LoadResult` has nowhere to put that third case. With `replace_existing`, a rule turned off this way is also removed from the engine |
 
 The free functions `load_rules`, `load_rules_from_string` and
 `load_rules_from_file` wrap a one-shot `RuleLoader` for the common case where
@@ -442,7 +442,9 @@ no `dynamic_cast` and no `typeid`. (The engine's `compile_production` does use
 for the engine itself yet.)
 
 **No iostreams.** `RETE_NO_IOSTREAM` removes `<fstream>` and with it
-`load_from_file` and `load_from_files`. An MCU target holds its rules in a flash
+`load_from_file` and `load_from_files`. It also drops `<ostream>` and the Boost
+DOT export from `rete.hpp`, so the embedded profile pulls in no stream headers
+at all. An MCU target holds its rules in a flash
 string and calls `load_from_string`. This is also why `examples/robotics` is not
 built on the embedded profile: it prints a trace to a console the target does
 not have.
@@ -506,12 +508,20 @@ salience is fixed. Errors across different rules are all reported in one pass.
 **No hot reload.** There is no file watcher, no atomic swap and no versioning.
 Reloading means calling the loader again with `replace_existing = true`, and
 that is not safe to do from inside an action handler while `run()` is walking
-the agenda. Load at init.
+the agenda. Load at init, or reload between `run()` calls.
 
-**Salience ties are not ordered.** The agenda sorts by salience with a stable
-sort, but the activation list is rebuilt from an `unordered_map` of productions,
-so two rules with the same salience may fire in either order. Give rules that
-must be ordered different saliences.
+A reload with `replace_existing` does what it says: a rule whose new definition
+says `enabled: false` is removed from the engine rather than left running, and
+a replaced rule starts with clean refraction rather than inheriting the old
+one's. Both of those were wrong at first and are covered by regression tests,
+because a hot-reloaded behaviour that silently never runs is the failure mode
+that costs a field day to find.
+
+**Salience ties resolve in definition order.** Two rules at the same salience
+fire earliest-defined first, which for a rule file means document order, and
+for `load_from_files` means file order. This is deterministic, but it is a
+weak signal: adding a rule earlier in the file changes it. Give rules that
+genuinely must be ordered different saliences.
 
 **No arithmetic, no functions, no cross-condition comparison.** A guard compares
 a bound variable against a literal. Comparing two bound variables, or computing
@@ -550,6 +560,13 @@ surface:
 - `RuleBuilder::where(variable, GuardOp, operand)`, the hand-written equivalent
   of a guard operator. `Production::guards` is empty for every rule built
   without it, and `run()` skips the check when it is.
+- `Agenda::clear_refraction_for(production)`, called by `remove_rule`.
+
+Two behaviours changed rather than only being added to, and both are fixes a
+programmatic user benefits from too. `remove_rule` now discards the removed
+rule's refraction entries; previously they were left keyed on a freed
+`Production*` and the next allocation at that address inherited them. And a
+salience tie now resolves in definition order instead of in hash order.
 
 A rule loaded from a file and the same rule written with `add_rule()` produce
 the same `Production` and behave identically. The loader is a different way to
