@@ -1,0 +1,89 @@
+{
+  "rules": [
+    {
+      "name": "emergency_stop",
+      "salience": 1000,
+      "when": [
+        { "fact": "obstacle", "attribute": "front",  "value": true },
+        { "fact": "robot",    "attribute": "moving", "value": true }
+      ],
+      "then": [
+        { "action": "stop", "params": { "reason": "obstacle_ahead", "brake": "hard" } }
+      ]
+    },
+    {
+      "name": "avoid_left_obstacle",
+      "salience": 500,
+      "when": [
+        { "fact": "obstacle", "attribute": "left",   "value": true },
+        { "fact": "obstacle", "attribute": "right",  "value": false },
+        { "fact": "robot",    "attribute": "moving", "value": true }
+      ],
+      "then": [
+        { "action": "turn_right", "params": { "angle_deg": 35, "speed": 0.25 } }
+      ]
+    },
+    {
+      "name": "avoid_right_obstacle",
+      "salience": 500,
+      "when": [
+        { "fact": "obstacle", "attribute": "right",  "value": true },
+        { "fact": "obstacle", "attribute": "left",   "value": false },
+        { "fact": "robot",    "attribute": "moving", "value": true }
+      ],
+      "then": [
+        { "action": "turn_left", "params": { "angle_deg": 35, "speed": 0.25 } }
+      ]
+    },
+    {
+      "name": "avoid_boxed_in",
+      "salience": 500,
+      "when": [
+        { "fact": "obstacle", "attribute": "left",   "value": true },
+        { "fact": "obstacle", "attribute": "right",  "value": true },
+        { "fact": "obstacle", "attribute": "front",  "value": false },
+        { "fact": "robot",    "attribute": "moving", "value": true }
+      ],
+      "then": [
+        { "action": "avoid_obstacle", "params": { "backoff_cm": 20 } }
+      ]
+    },
+    {
+      "name": "low_battery_return",
+      "salience": 300,
+      "when": [
+        { "fact": "battery", "attribute": "level",  "op": "less_than", "value": 20, "bind": "?level" },
+        { "fact": "robot",   "attribute": "moving", "value": true }
+      ],
+      "then": [
+        { "action": "return_to_base", "params": { "speed": 0.4, "announce": true } }
+      ]
+    },
+    {
+      "name": "follow_person",
+      "salience": 100,
+      "when": [
+        { "fact": "person",   "attribute": "visible", "value": true },
+        { "fact": "obstacle", "attribute": "front",   "value": false },
+        { "fact": "robot",    "attribute": "moving",  "value": true }
+      ],
+      "then": [
+        { "action": "follow", "params": { "distance_m": 1.5 } }
+      ]
+    },
+    {
+      "name": "cruise",
+      "salience": 10,
+      "when": [
+        { "fact": "obstacle", "attribute": "front",   "value": false },
+        { "fact": "obstacle", "attribute": "left",    "value": false },
+        { "fact": "obstacle", "attribute": "right",   "value": false },
+        { "fact": "person",   "attribute": "visible", "value": false },
+        { "fact": "robot",    "attribute": "moving",  "value": true }
+      ],
+      "then": [
+        { "action": "move_forward", "params": { "speed": 0.6 } }
+      ]
+    }
+  ]
+}
