@@ -83,9 +83,27 @@ public:
     void clear_pending() { activations_.clear(); }
 
     Activation pop() {
-        sort_by_strategy();
-        Activation best = std::move(activations_.back());
-        activations_.pop_back();
+        // max_element returns the FIRST of several equally-ranked activations,
+        // so a salience tie is broken by the order the rules were defined in.
+        // The previous stable_sort plus back() took the LAST one, which meant
+        // a rule file could not decide its own tie-breaks. It is also O(n)
+        // rather than O(n log n), and pop runs once per cycle.
+        const auto ranks_below = [this](const Activation& a, const Activation& b) {
+            switch (strategy_) {
+            case ConflictStrategy::Priority:
+                return a.production->salience < b.production->salience;
+            case ConflictStrategy::Recency:
+                return a.timetag < b.timetag;
+            case ConflictStrategy::Specificity:
+                return a.production->conditions.size() < b.production->conditions.size();
+            case ConflictStrategy::FIFO:
+                return a.timetag > b.timetag;
+            }
+            return false;
+        };
+        auto it = std::max_element(activations_.begin(), activations_.end(), ranks_below);
+        Activation best = std::move(*it);
+        activations_.erase(it);
         return best;
     }
 
@@ -103,23 +121,6 @@ public:
     const std::vector<Activation>& activations() const { return activations_; }
 
 private:
-    void sort_by_strategy() {
-        std::stable_sort(activations_.begin(), activations_.end(),
-            [this](const Activation& a, const Activation& b) {
-                switch (strategy_) {
-                case ConflictStrategy::Priority:
-                    return a.production->salience < b.production->salience;
-                case ConflictStrategy::Recency:
-                    return a.timetag < b.timetag;
-                case ConflictStrategy::Specificity:
-                    return a.production->conditions.size() < b.production->conditions.size();
-                case ConflictStrategy::FIFO:
-                    return a.timetag > b.timetag;
-                }
-                return false;
-            });
-    }
-
     ConflictStrategy strategy_ = ConflictStrategy::Priority;
     std::vector<Activation> activations_;
     std::set<std::pair<Production*, std::vector<WmeId>>> refraction_set_;

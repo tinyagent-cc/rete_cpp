@@ -212,9 +212,16 @@ public:
 private:
     void rebuild_agenda_from_current_matches() {
         agenda_.clear_pending();
-        for (auto& entry : production_nodes_) {
-            Production* prod = entry.first;
-            ProductionNode* pnode = entry.second;
+        // Walk productions_ rather than production_nodes_. The latter is an
+        // unordered_map, so it fed the agenda in an unspecified order and two
+        // rules at the same salience could fire in either order from one run
+        // to the next. Insertion order makes the tie-break the order the rules
+        // were defined in, which a rule file can actually control.
+        for (auto& owned : productions_) {
+            Production* prod = owned.get();
+            auto node_it = production_nodes_.find(prod);
+            if (node_it == production_nodes_.end()) continue;
+            ProductionNode* pnode = node_it->second;
             if (!prod || !pnode) continue;
 
             for (auto& tok : pnode->tokens) {
