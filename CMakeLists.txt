@@ -25,6 +25,58 @@ else()
     message(STATUS "Boost not found -- BGL DOT export disabled (core functionality unaffected)")
 endif()
 
+option(RETE_ENABLE_JSON "Build the JSON rule loader" ON)
+option(RETE_ENABLE_YAML "Build the YAML rule loader (needs yaml-cpp; host only)" OFF)
+option(RETE_EMBEDDED "Constrained-MCU profile: JSON only, no iostream, no exceptions" OFF)
+
+# config.hpp already #errors on this combination, but a compile error inside a
+# header is a poor way to learn that two cache variables disagree.
+if(RETE_EMBEDDED AND RETE_ENABLE_YAML)
+    message(FATAL_ERROR
+        "RETE_EMBEDDED=ON cannot be combined with RETE_ENABLE_YAML=ON. "
+        "Embedded targets load rules as JSON; see docs/rules.md.")
+endif()
+
+set(_rete_profile "core")
+
+# The options and the header defaults are two sources of truth. Pass each one
+# through as an explicit 0 or 1 rather than trusting them to agree.
+if(RETE_ENABLE_JSON)
+    target_compile_definitions(rete INTERFACE RETE_ENABLE_JSON=1)
+    string(APPEND _rete_profile "+json")
+else()
+    target_compile_definitions(rete INTERFACE RETE_ENABLE_JSON=0)
+endif()
+
+if(RETE_ENABLE_YAML)
+    find_package(yaml-cpp CONFIG QUIET)
+    if(TARGET yaml-cpp::yaml-cpp)
+        target_link_libraries(rete INTERFACE yaml-cpp::yaml-cpp)
+    elseif(TARGET yaml-cpp)
+        target_link_libraries(rete INTERFACE yaml-cpp)
+    else()
+        # Falling back to a JSON-only build would be the worst outcome here: a
+        # robot that boots, silently loads nothing, and runs with no behaviour.
+        message(FATAL_ERROR
+            "RETE_ENABLE_YAML=ON but yaml-cpp was not found. Install it "
+            "(brew install yaml-cpp, apt install libyaml-cpp-dev), point "
+            "CMAKE_PREFIX_PATH at it, or configure with -DRETE_ENABLE_YAML=OFF.")
+    endif()
+    target_compile_definitions(rete INTERFACE RETE_ENABLE_YAML=1)
+    string(APPEND _rete_profile "+yaml(${yaml-cpp_VERSION})")
+else()
+    target_compile_definitions(rete INTERFACE RETE_ENABLE_YAML=0)
+endif()
+
+if(RETE_EMBEDDED)
+    target_compile_definitions(rete INTERFACE RETE_EMBEDDED=1)
+    string(APPEND _rete_profile "+embedded")
+else()
+    target_compile_definitions(rete INTERFACE RETE_EMBEDDED=0)
+endif()
+
+message(STATUS "rete profile: ${_rete_profile}")
+
 option(RETE_BUILD_TESTS "Build tests" ON)
 option(RETE_BUILD_EXAMPLES "Build examples" ON)
 option(RETE_BUILD_BENCHMARKS "Build benchmarks" ON)
