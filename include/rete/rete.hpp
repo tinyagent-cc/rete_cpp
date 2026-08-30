@@ -68,6 +68,18 @@ public:
         }
     }
 
+    bool has_rule(const std::string& name) const {
+        return std::any_of(productions_.begin(), productions_.end(),
+            [&](const auto& p) { return p->name == name; });
+    }
+
+    std::vector<std::string> rule_names() const {
+        std::vector<std::string> out;
+        out.reserve(productions_.size());
+        for (const auto& p : productions_) out.push_back(p->name);
+        return out;
+    }
+
     // ---- Working memory operations ---------------------------------------
 
     WmePtr assert_fact(Value id, Value attr, Value val) {
@@ -118,6 +130,20 @@ public:
 
             if (agenda_.has_fired(act.production, ids))
                 continue;
+
+            // Guards are evaluated before refraction is recorded. A rule whose
+            // comparison fails is not "fired and done"; the same match must be
+            // allowed to fire later if the value moves into range.
+            if (act.production && !act.production->guards.empty()) {
+                Bindings bindings = act.compute_bindings();
+                if (!evaluate_guards(act.production->guards, bindings))
+                    continue;
+                agenda_.mark_fired(act.production, ids);
+                if (act.production->action)
+                    act.production->action(*this, bindings);
+                ++cycles;
+                continue;
+            }
 
             agenda_.mark_fired(act.production, ids);
 
@@ -435,6 +461,13 @@ public:
 
     RuleBuilder& when_not(Value id, Value attr, Value val) {
         prod_.conditions.push_back(make_condition(id, attr, val, true));
+        return *this;
+    }
+
+    // Comparison predicate on a variable a `when` clause bound. Kept separate
+    // from `when` because it is not a network test: see rete/production.hpp.
+    RuleBuilder& where(std::string variable, GuardOp op, Value operand) {
+        prod_.guards.push_back(Guard{std::move(variable), op, std::move(operand)});
         return *this;
     }
 
