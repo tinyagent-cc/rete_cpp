@@ -1,0 +1,143 @@
+# The same seven rules as rules.json, in YAML. Both files load through the
+# same ConfigNode and produce the same productions, so the example behaves
+# identically whichever one you pass to it.
+#
+# Salience is the arbiter. Every rule that matches fires, highest salience
+# first, and this application takes the first proposal as its command.
+
+rules:
+  # Nothing outranks a collision that is about to happen.
+  - name: emergency_stop
+    salience: 1000
+    when:
+      - fact: obstacle
+        attribute: front
+        value: true          # op defaults to equals
+      - fact: robot
+        attribute: moving
+        value: true
+    then:
+      - action: stop         # must exist in the ActionRegistry before loading
+        params:
+          reason: obstacle_ahead
+          brake: hard
+
+  # Blocked on one side only, so steer away from the side that is blocked.
+  - name: avoid_left_obstacle
+    salience: 500
+    when:
+      - fact: obstacle
+        attribute: left
+        value: true
+      - fact: obstacle
+        attribute: right
+        value: false
+      - fact: robot
+        attribute: moving
+        value: true
+    then:
+      - action: turn_right
+        params:
+          angle_deg: 35
+          speed: 0.25
+
+  - name: avoid_right_obstacle
+    salience: 500
+    when:
+      - fact: obstacle
+        attribute: right
+        value: true
+      - fact: obstacle
+        attribute: left
+        value: false
+      - fact: robot
+        attribute: moving
+        value: true
+    then:
+      - action: turn_left
+        params:
+          angle_deg: 35
+          speed: 0.25
+
+  # Blocked both sides with a clear front: neither turn helps, so back off.
+  - name: avoid_boxed_in
+    salience: 500
+    when:
+      - fact: obstacle
+        attribute: left
+        value: true
+      - fact: obstacle
+        attribute: right
+        value: true
+      - fact: obstacle
+        attribute: front
+        value: false
+      - fact: robot
+        attribute: moving
+        value: true
+    then:
+      - action: avoid_obstacle
+        params:
+          backoff_cm: 20
+
+  # less_than is a guard: the network binds ?level and the comparison runs when
+  # the activation is about to fire. Because guards are checked before
+  # refraction is recorded, this match can fail at level 22 and fire later at
+  # level 18 without anything resetting it.
+  - name: low_battery_return
+    salience: 300
+    when:
+      - fact: battery
+        attribute: level
+        op: less_than
+        value: 20
+        bind: "?level"       # the handler sees ?level in its bindings
+      - fact: robot
+        attribute: moving
+        value: true
+    then:
+      - action: return_to_base
+        params:
+          speed: 0.4
+          announce: true
+
+  - name: follow_person
+    salience: 100
+    when:
+      - fact: person
+        attribute: visible
+        value: true
+      - fact: obstacle
+        attribute: front
+        value: false
+      - fact: robot
+        attribute: moving
+        value: true
+    then:
+      - action: follow
+        params:
+          distance_m: 1.5
+
+  # The default behaviour, and it loses to everything above it.
+  - name: cruise
+    salience: 10
+    when:
+      - fact: obstacle
+        attribute: front
+        value: false
+      - fact: obstacle
+        attribute: left
+        value: false
+      - fact: obstacle
+        attribute: right
+        value: false
+      - fact: person
+        attribute: visible
+        value: false
+      - fact: robot
+        attribute: moving
+        value: true
+    then:
+      - action: move_forward
+        params:
+          speed: 0.6

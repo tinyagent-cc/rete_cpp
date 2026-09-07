@@ -10,7 +10,10 @@
 #include "wme.hpp"
 
 #include <algorithm>
-#include <iostream>
+#include "config.hpp"
+#if !RETE_NO_IOSTREAM
+#include <ostream>
+#endif
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -63,9 +66,22 @@ public:
                 pnode->tokens.clear();
                 pnode->production = nullptr;
             }
+            agenda_.clear_refraction_for(it->get());
             production_nodes_.erase(it->get());
             productions_.erase(it);
         }
+    }
+
+    bool has_rule(const std::string& name) const {
+        return std::any_of(productions_.begin(), productions_.end(),
+            [&](const auto& p) { return p->name == name; });
+    }
+
+    std::vector<std::string> rule_names() const {
+        std::vector<std::string> out;
+        out.reserve(productions_.size());
+        for (const auto& p : productions_) out.push_back(p->name);
+        return out;
     }
 
     // ---- Working memory operations ---------------------------------------
@@ -119,6 +135,20 @@ public:
             if (agenda_.has_fired(act.production, ids))
                 continue;
 
+            // Guards are evaluated before refraction is recorded. A rule whose
+            // comparison fails is not "fired and done"; the same match must be
+            // allowed to fire later if the value moves into range.
+            if (act.production && !act.production->guards.empty()) {
+                Bindings bindings = act.compute_bindings();
+                if (!evaluate_guards(act.production->guards, bindings))
+                    continue;
+                agenda_.mark_fired(act.production, ids);
+                if (act.production->action)
+                    act.production->action(*this, bindings);
+                ++cycles;
+                continue;
+            }
+
             agenda_.mark_fired(act.production, ids);
 
             if (act.production && act.production->action) {
@@ -161,6 +191,7 @@ public:
 
     // ---- Optional Boost BGL DOT export -----------------------------------
 #ifdef RETE_HAS_BOOST
+#if !RETE_NO_IOSTREAM
     void export_to_dot(std::ostream& os) const {
         using Graph = boost::adjacency_list<
             boost::vecS, boost::vecS, boost::directedS,
@@ -181,14 +212,22 @@ public:
         boost::write_graphviz(os, g,
             boost::make_label_writer(boost::get(boost::vertex_name, g)));
     }
-#endif
+#endif // !RETE_NO_IOSTREAM
+#endif // RETE_HAS_BOOST
 
 private:
     void rebuild_agenda_from_current_matches() {
         agenda_.clear_pending();
-        for (auto& entry : production_nodes_) {
-            Production* prod = entry.first;
-            ProductionNode* pnode = entry.second;
+        // Walk productions_ rather than production_nodes_. The latter is an
+        // unordered_map, so it fed the agenda in an unspecified order and two
+        // rules at the same salience could fire in either order from one run
+        // to the next. Insertion order makes the tie-break the order the rules
+        // were defined in, which a rule file can actually control.
+        for (auto& owned : productions_) {
+            Production* prod = owned.get();
+            auto node_it = production_nodes_.find(prod);
+            if (node_it == production_nodes_.end()) continue;
+            ProductionNode* pnode = node_it->second;
             if (!prod || !pnode) continue;
 
             for (auto& tok : pnode->tokens) {
@@ -435,6 +474,13 @@ public:
 
     RuleBuilder& when_not(Value id, Value attr, Value val) {
         prod_.conditions.push_back(make_condition(id, attr, val, true));
+        return *this;
+    }
+
+    // Comparison predicate on a variable a `when` clause bound. Kept separate
+    // from `when` because it is not a network test: see rete/production.hpp.
+    RuleBuilder& where(std::string variable, GuardOp op, Value operand) {
+        prod_.guards.push_back(Guard{std::move(variable), op, std::move(operand)});
         return *this;
     }
 
